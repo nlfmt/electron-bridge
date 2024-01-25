@@ -1,29 +1,47 @@
-import { BrowserWindow, IpcMainEvent, IpcMainInvokeEvent, ipcMain } from "electron";
+import {
+  BrowserWindow,
+  IpcMainEvent,
+  IpcMainInvokeEvent,
+  ipcMain,
+} from "electron"
 
-export type ApiFn = (e: IpcMainInvokeEvent, ...args: any[]) => any;
+export type ApiFn = (e: IpcMainInvokeEvent, ...args: any[]) => any
+export type EventDef = Record<string, any>
 
+/**
+ * Create a router for bridge functions
+ * @param functions The function definitions
+ * @returns The router
+ */
 export const createBridgeRouter = <Functions extends Record<string, ApiFn>>(
   functions: Functions
-) => functions;
+) => functions
 
-
-
-export type EventDef = Record<string, any>;
 export class ElectronBridge<
   RendererEvents extends EventDef = {},
   MainEvents extends EventDef = {},
   Routers extends Record<string, Record<string, ApiFn>> = {}
 > {
-  constructor(private routers: Routers, private opts?: { validateSender?: boolean }) {}
-  
+  constructor(
+    private routers: Routers,
+    private opts?: { validateSender?: boolean }
+  ) {}
+
+  /**
+   * Register the bridge functions
+   */
   register() {
     for (const [routerName, router] of Object.entries(this.routers)) {
       for (const [fnName, fn] of Object.entries(router)) {
-        ipcMain.handle(`${routerName}.${fnName}`, fn);
+        ipcMain.handle(`${routerName}.${fnName}`, fn)
       }
     }
   }
 
+  /**
+   * Define Events that can be sent through the bridge
+   * @returns 
+   */
   withEvents<
     RendererEventsDef extends EventDef,
     MainEventsDef extends EventDef
@@ -32,7 +50,7 @@ export class ElectronBridge<
       RendererEventsDef,
       MainEventsDef,
       Routers
-    >;
+    >
   }
 
   /**
@@ -40,12 +58,9 @@ export class ElectronBridge<
    * @param name The name of the event
    * @param args The arguments to pass to the event
    */
-  emit<T extends keyof MainEvents & string>(
-    event: T,
-    data: RendererEvents[T]
-  ) {
+  emit<T extends keyof MainEvents & string>(event: T, data: RendererEvents[T]) {
     for (const win of BrowserWindow.getAllWindows())
-      win.webContents.send(event, data);
+      win.webContents.send(event, data)
   }
 
   /**
@@ -58,11 +73,11 @@ export class ElectronBridge<
     fn: (e: IpcMainEvent, data: RendererEvents[T]) => void
   ) {
     const listener = (e: IpcMainEvent, data: RendererEvents[T]) => {
-      if (!this.validateSender(e.senderFrame)) return;
-      fn(e, data);
+      if (!this.validateSender(e.senderFrame)) return
+      fn(e, data)
     }
-    ipcMain.on(name, listener);
-    return () => ipcMain.removeListener(name, listener);
+    ipcMain.on(name, listener)
+    return () => ipcMain.removeListener(name, listener)
   }
 
   /**
@@ -72,21 +87,21 @@ export class ElectronBridge<
    */
   once<T extends keyof RendererEvents & string>(
     name: T,
-    fn: (e: IpcMainEvent,data: RendererEvents[T]) => void
+    fn: (e: IpcMainEvent, data: RendererEvents[T]) => void
   ) {
     const listener = (e: IpcMainEvent, data: RendererEvents[T]) => {
-      if (!this.validateSender(e.senderFrame)) return;
-      fn(e, data);
+      if (!this.validateSender(e.senderFrame)) return
+      fn(e, data)
     }
-    ipcMain.once(name, listener);
-    return () => ipcMain.removeListener(name, listener);
+    ipcMain.once(name, listener)
+    return () => ipcMain.removeListener(name, listener)
   }
 
   /**
    * Remove all listeners for an event from the renderer process
    */
   removeAllListeners<T extends keyof RendererEvents & string>(name: T) {
-    ipcMain.removeAllListeners(name);
+    ipcMain.removeAllListeners(name)
   }
 
   /**
@@ -94,18 +109,24 @@ export class ElectronBridge<
    */
   private validateSender(frame: Electron.WebFrameMain): boolean {
     if (!(this.opts?.validateSender ?? process.env.NODE_ENV === "production"))
-      return true;
+      return true
 
-    const frameUrl = new URL(frame.url);
-    if (frameUrl.protocol == "file:") return true;
+    const frameUrl = new URL(frame.url)
+    if (frameUrl.protocol == "file:") return true
 
-    return false;
+    return false
   }
 }
 
-
-
-export const createBridge = <Routers extends Record<string, Record<string, ApiFn>>>(
+/**
+ * Create a bridge instance
+ * @param routers The routers to use
+ * @param opts Configuration options
+ * @returns The bridge instance
+ */
+export const createBridge = <
+  Routers extends Record<string, Record<string, ApiFn>>
+>(
   routers: Routers,
   opts?: ElectronBridge["opts"]
-) => new ElectronBridge(routers, opts);
+) => new ElectronBridge(routers, opts)

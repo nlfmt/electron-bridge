@@ -5,7 +5,7 @@
   "description": "Typesafe ICP bridge for electron",
   "main": "dist/index.mjs",
   "types": "dist/index.d.mts",
-  "files": ["dist"],
+  "files": ["dist", "renderer.d.ts", "preload.d.ts"],
   "scripts": {
     "build": "tsup",
     "release": "pnpm run build && changeset publish",
