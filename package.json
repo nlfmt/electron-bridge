@@ -10,6 +10,23 @@
     "renderer.d.ts",
     "preload.d.ts"
   ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.mjs"
+    },
+    "./preload": {
+      "types": "./dist/preload.d.ts",
+      "import": "./dist/preload.mjs",
+      "require": "./dist/preload.mjs"
+    },
+    "./renderer": {
+      "types": "./dist/renderer.d.ts",
+      "import": "./dist/renderer.mjs"
+    },
+    "./*": "./*"
+  },
   "scripts": {
     "build": "tsup",
     "release": "pnpm run build && changeset publish",
