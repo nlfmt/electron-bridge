@@ -1,11 +1,15 @@
 {
   "name": "@nlfmt/electron-bridge",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "author": "nlfmt <nlfmt@gmx.de>",
   "description": "Typesafe ICP bridge for electron",
   "main": "dist/index.mjs",
   "types": "dist/index.d.mts",
-  "files": ["dist", "renderer.d.ts", "preload.d.ts"],
+  "files": [
+    "dist",
+    "renderer.d.ts",
+    "preload.d.ts"
+  ],
   "scripts": {
     "build": "tsup",
     "release": "pnpm run build && changeset publish",
