@@ -1,5 +1,11 @@
 # @nlfmt/electron-bridge
 
+## 0.1.1
+
+### Patch Changes
+
+- 2c4d663: add exports config to package.json
+
 ## 0.1.0
 
 ### Minor Changes
