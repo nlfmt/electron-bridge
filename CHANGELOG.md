@@ -1,5 +1,11 @@
 # @nlfmt/electron-bridge
 
+## 0.2.1
+
+### Patch Changes
+
+- 93a5a78: Fix wrong property access breaking api calls
+
 ## 0.2.0
 
 ### Minor Changes
