@@ -20,30 +20,12 @@ type ToRendererApi<T extends ElectronBridge> = T extends ElectronBridge<
     }
   : never
 
-type EventHandlingFunction<Def extends EventDef, Event = IpcRendererEvent> = <
-  T extends keyof Def & string
->(
-  event: T,
-  fn: (e: Event, data: Def[T]) => void
-) => () => void
-
-type EventApi<MainEventsDef extends EventDef, RendererEventsDef extends EventDef> = {
-  emit: <T extends keyof RendererEventsDef & string>(
-    event: T,
-    data: RendererEventsDef[T]
-  ) => void
-  on: EventHandlingFunction<MainEventsDef>
-  once: EventHandlingFunction<MainEventsDef>
-  off: EventHandlingFunction<MainEventsDef>
-}
-
-type ToEventApi<T extends ElectronBridge> = T extends ElectronBridge<
-  infer RendererEventsDef,
-  infer MainEventsDef,
-  infer _
->
-  ? EventApi<MainEventsDef, RendererEventsDef>
-  : never
+type ToEventApi<T extends ElectronBridge> = T extends ElectronBridge<infer REDef, infer MEDef, infer _> ? {
+  emit<T extends keyof REDef & string>(event: T, data: REDef[T]): void
+  on<T extends keyof MEDef & string>(event: T, fn: (e: Event, data: MEDef[T]) => void): () => void
+  once<T extends keyof MEDef & string>(event: T, fn: (e: Event, data: MEDef[T]) => void): () => void
+  off<T extends keyof MEDef & string>(event: T, fn: (e: Event, data: MEDef[T]) => void): () => void
+} : never
 
 export const createRendererBridge = <T extends ElectronBridge = never>(
   name = "__bridge"
@@ -67,7 +49,7 @@ export const createRendererBridge = <T extends ElectronBridge = never>(
       if (key in events) return events[key]
       return new Proxy({}, {
         get: (_, fn: string) => (...args: any[]) => (
-          __bridge.call(`${key}.${fn}`, ...args)
+          __bridge.invoke(`${key}.${fn}`, ...args)
         )
       })
     }
