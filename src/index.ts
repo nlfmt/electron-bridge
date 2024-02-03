@@ -5,6 +5,10 @@ import {
   ipcMain,
 } from "electron"
 
+type ReservedKeys = "emit" | "on" | "once" | "off"
+type AssertNoReservedKeys<T> = keyof T extends ReservedKeys ? "router name is a reserved key" : T
+type IfVoid<T, Then, Else> = T extends void ? Then : Else
+
 export type ApiFn = (e: IpcMainInvokeEvent, ...args: any[]) => any
 export type EventDef = Record<string, any>
 
@@ -58,7 +62,9 @@ export class ElectronBridge<
    * @param name The name of the event
    * @param args The arguments to pass to the event
    */
-  emit<T extends keyof MainEvents & string>(event: T, data: RendererEvents[T]) {
+  emit<T extends keyof MainEvents & string>(event: IfVoid<MainEvents[T], T, never>): void
+  emit<T extends keyof MainEvents & string>(event: T, data: MainEvents[T]): void
+  emit(event: string, data?: unknown): void {
     for (const win of BrowserWindow.getAllWindows())
       win.webContents.send(event, data)
   }
@@ -125,8 +131,8 @@ export class ElectronBridge<
  * @returns The bridge instance
  */
 export const createBridge = <
-  Routers extends Record<string, Record<string, ApiFn>>
+  Routers extends Record<string, Record<string, ApiFn>>,
 >(
-  routers: Routers,
+  routers: AssertNoReservedKeys<Routers>,
   opts?: ElectronBridge["opts"]
-) => new ElectronBridge(routers, opts)
+) => new ElectronBridge(routers as Routers, opts)

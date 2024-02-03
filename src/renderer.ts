@@ -27,20 +27,22 @@ type EventHandlingFunction<Def extends EventDef, Event = IpcRendererEvent> = <
   fn: (e: Event, data: Def[T]) => void
 ) => () => void
 
+type EventApi<MainEventsDef extends EventDef, RendererEventsDef extends EventDef> = {
+  emit: <T extends keyof RendererEventsDef & string>(
+    event: T,
+    data: RendererEventsDef[T]
+  ) => void
+  on: EventHandlingFunction<MainEventsDef>
+  once: EventHandlingFunction<MainEventsDef>
+  off: EventHandlingFunction<MainEventsDef>
+}
+
 type ToEventApi<T extends ElectronBridge> = T extends ElectronBridge<
   infer RendererEventsDef,
   infer MainEventsDef,
   infer _
 >
-  ? {
-      emit: <T extends keyof RendererEventsDef & string>(
-        event: T,
-        data: RendererEventsDef[T]
-      ) => void
-      on: EventHandlingFunction<MainEventsDef>
-      once: EventHandlingFunction<MainEventsDef>
-      off: EventHandlingFunction<MainEventsDef>
-    }
+  ? EventApi<MainEventsDef, RendererEventsDef>
   : never
 
 export const createRendererBridge = <T extends ElectronBridge = never>(
@@ -51,22 +53,26 @@ export const createRendererBridge = <T extends ElectronBridge = never>(
     throw new Error(
       `'${name}' not found. Did you forget to call registerBridgePreload() in your preload script?`
     )
-
-  // prettier-ignore
-  const api = new Proxy({}, {
-    get: (_, router: string) => new Proxy({}, {
-      get: (_, fn: string) => (...args: any[]) => (
-        __bridge.call(`${router}.${fn}`, ...args)
-      )
-    })
-  }) as ToRendererApi<T>
-
-  const events = {
+  
+  const events: Record<string, any> = {
     emit: __bridge.emit,
     on: __bridge.on,
     once: __bridge.once,
     off: __bridge.off,
-  } as ToEventApi<T>
+  }
 
-  return { api, events }
+  // prettier-ignore
+  const api = new Proxy(events, {
+    get: (events, key: string) => {
+      if (key in events) return events[key]
+      return new Proxy({}, {
+        get: (_, fn: string) => (...args: any[]) => (
+          __bridge.call(`${key}.${fn}`, ...args)
+        )
+      })
+    }
+  }) as ToRendererApi<T> & ToEventApi<T>
+
+
+  return api
 }

@@ -2,7 +2,7 @@
   "name": "@nlfmt/electron-bridge",
   "version": "0.1.1",
   "author": "nlfmt <nlfmt@gmx.de>",
-  "description": "Typesafe ICP bridge for electron",
+  "description": "Typesafe IPC bridge for electron",
   "main": "dist/index.mjs",
   "types": "dist/index.d.mts",
   "files": [
@@ -52,11 +52,11 @@
   "license": "MIT",
   "devDependencies": {
     "@changesets/cli": "^2.27.1",
-    "@types/node": "^20.11.6",
+    "@types/node": "^20.11.16",
     "tsup": "^8.0.1",
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "electron": "^28.2.0"
+    "electron": "^28.2.1"
   }
 }
