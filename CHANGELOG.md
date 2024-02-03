@@ -1,5 +1,11 @@
 # @nlfmt/electron-bridge
 
+## 0.2.0
+
+### Minor Changes
+
+- cc6ffaa: Bettery typing, move event handling functions to api, fix cleanup functions
+
 ## 0.1.1
 
 ### Patch Changes
