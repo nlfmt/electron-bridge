@@ -1,5 +1,11 @@
 # @nlfmt/electron-bridge
 
+## 0.2.2
+
+### Patch Changes
+
+- 0832e21: Improve typings, rename send to emit in bridge
+
 ## 0.2.1
 
 ### Patch Changes
