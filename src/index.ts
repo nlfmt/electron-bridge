@@ -1,16 +1,14 @@
 import {
   BrowserWindow,
   IpcMainEvent,
-  IpcMainInvokeEvent,
   ipcMain,
 } from "electron"
+import type { ApiFn, EventDef, If, RouterDef } from "./types"
+import type { ExposedFunctions } from "./preload"
 
-type ReservedKeys = "emit" | "on" | "once" | "off"
+type ReservedKeys = Exclude<keyof ExposedFunctions, "invoke">
 type AssertNoReservedKeys<T> = keyof T extends ReservedKeys ? "router name is a reserved key" : T
-type IfVoid<T, Then, Else> = T extends void ? Then : Else
 
-export type ApiFn = (e: IpcMainInvokeEvent, ...args: any[]) => any
-export type EventDef = Record<string, any>
 
 /**
  * Create a router for bridge functions
@@ -24,7 +22,7 @@ export const createBridgeRouter = <Functions extends Record<string, ApiFn>>(
 export class ElectronBridge<
   RendererEvents extends EventDef = {},
   MainEvents extends EventDef = {},
-  Routers extends Record<string, Record<string, ApiFn>> = {}
+  Routers extends RouterDef = {}
 > {
   constructor(
     private routers: Routers,
@@ -62,7 +60,7 @@ export class ElectronBridge<
    * @param name The name of the event
    * @param args The arguments to pass to the event
    */
-  emit<T extends keyof MainEvents & string>(event: IfVoid<MainEvents[T], T, never>): void
+  emit<T extends keyof MainEvents & string>(event: If<MainEvents[T], void, T, never>): void
   emit<T extends keyof MainEvents & string>(event: T, data: MainEvents[T]): void
   emit(event: string, data?: unknown): void {
     for (const win of BrowserWindow.getAllWindows())

@@ -139,7 +139,7 @@ import { contextBridge, ipcRenderer } from "electron"
 
 contextBridge.exposeInMainWorld("__bridge", {
   invoke: ipcRenderer.invoke,
-  send: ipcRenderer.send,
+  emit: ipcRenderer.send,
   on: (...args: Parameters<typeof ipcRenderer.on>) => {
     ipcRenderer.on(...args)
     return () => ipcRenderer.off(...args)
