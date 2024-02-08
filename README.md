@@ -65,14 +65,14 @@ registerBridgePreload()
 
 ```tsx
 // App.tsx
-import { createBridgeRenderer } from '@nlfmt/electron-bridge/renderer'
+import { createRendererBridge } from '@nlfmt/electron-bridge/renderer'
 
 // Usually would be defined in a separate file like `bridge.ts`
-export const bridge = createBridgeRenderer()
+export const bridge = createRendererBridge()
 
 function App() {
   return (
-    <button onClick={() => bridge.api.example.log("Hello from App.tsx")}>
+    <button onClick={() => bridge.example.log("Hello from App.tsx")}>
       Send message
     </button>
   )
@@ -108,10 +108,10 @@ bridge.on()
 Then, use the events api in the renderer:
 ```tsx
 // App.tsx
-import { createBridgeRenderer } from '@nlfmt/electron-bridge/renderer'
+import { createRendererBridge } from '@nlfmt/electron-bridge/renderer'
 import { useEffect } from 'react'
 
-export const bridge = createBridgeRenderer()
+export const bridge = createRendererBridge()
 
 function App() {
 
@@ -123,7 +123,7 @@ function App() {
   }, [])
   
   return (
-    <button onClick={() => bridge.api.example.log("Hello from App.tsx")}>
+    <button onClick={() => bridge.example.log("Hello from App.tsx")}>
       Send message
     </button>
   )
