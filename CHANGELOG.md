@@ -1,5 +1,11 @@
 # @nlfmt/electron-bridge
 
+## 0.3.0
+
+### Minor Changes
+
+- 56f229d: add extra export for helper types
+
 ## 0.2.2
 
 ### Patch Changes
