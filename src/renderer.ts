@@ -1,23 +1,24 @@
+import { IpcRendererEvent } from "electron"
 import { type ElectronBridge } from "./index"
 import type { ExposedFunctions } from "./preload"
-import type { Prettify, StripFirstArg } from "./types"
+import type { EmitArgs, EventCallback, Prettify, StripFirstArg } from "./types"
 
 
-type RendererBridge<T extends ElectronBridge> = T extends ElectronBridge<
+export type RendererBridge<T extends ElectronBridge> = T extends ElectronBridge<
   infer REDef,
   infer MEDef,
   infer RouterDef
 >
-  ? {
+  ? Prettify<{
       [K in keyof RouterDef]: {
         [F in keyof RouterDef[K]]: StripFirstArg<RouterDef[K][F]>
       }
     } & {
-      emit<T extends keyof REDef & string>(event: T, data: REDef[T]): void
-      on<T extends keyof MEDef & string>(event: T, fn: (e: Event, data: MEDef[T]) => void): () => void
-      once<T extends keyof MEDef & string>(event: T, fn: (e: Event, data: MEDef[T]) => void): () => void
-      off<T extends keyof MEDef & string>(event: T, fn: (e: Event, data: MEDef[T]) => void): () => void
-    }
+      emit<T extends keyof REDef & string>(...args: EmitArgs<REDef, T>): void
+      on<T extends keyof MEDef & string>(event: T, fn: EventCallback<MEDef, T, IpcRendererEvent>): () => void
+      once<T extends keyof MEDef & string>(event: T, fn: EventCallback<MEDef, T, IpcRendererEvent>): () => void
+      off<T extends keyof MEDef & string>(event: T, fn: EventCallback<MEDef, T, IpcRendererEvent>): () => void
+    }>
   : never
 
 /**
@@ -51,7 +52,7 @@ export function createRendererBridge<T extends ElectronBridge = never>(
         )
       })
     }
-  }) as Prettify<RendererBridge<T>>
+  })
 
-  return api
+  return api as RendererBridge<T>
 }

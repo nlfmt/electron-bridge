@@ -25,6 +25,10 @@
       "types": "./dist/renderer.d.ts",
       "import": "./dist/renderer.mjs"
     },
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "import": "./dist/types.mjs"
+    },
     "./*": "./*"
   },
   "scripts": {

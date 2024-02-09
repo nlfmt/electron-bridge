@@ -1,14 +1,17 @@
-import {
-  BrowserWindow,
-  IpcMainEvent,
-  ipcMain,
-} from "electron"
-import type { ApiFn, EventDef, If, RouterDef } from "./types"
+import { BrowserWindow, IpcMainEvent, ipcMain } from "electron"
+import type {
+  ApiFn,
+  EmitArgs,
+  EventDef,
+  EventCallback,
+  RouterDef,
+} from "./types"
 import type { ExposedFunctions } from "./preload"
 
 type ReservedKeys = Exclude<keyof ExposedFunctions, "invoke">
-type AssertNoReservedKeys<T> = keyof T extends ReservedKeys ? "router name is a reserved key" : T
-
+type AssertNoReservedKeys<T> = keyof T extends ReservedKeys
+  ? "router name is a reserved key"
+  : T
 
 /**
  * Create a router for bridge functions
@@ -42,17 +45,13 @@ export class ElectronBridge<
 
   /**
    * Define Events that can be sent through the bridge
-   * @returns 
+   * @returns
    */
   withEvents<
     RendererEventsDef extends EventDef,
     MainEventsDef extends EventDef
-  >() {
-    return this as unknown as ElectronBridge<
-      RendererEventsDef,
-      MainEventsDef,
-      Routers
-    >
+  >(): ElectronBridge<RendererEventsDef, MainEventsDef, Routers> {
+    return this as any
   }
 
   /**
@@ -60,11 +59,11 @@ export class ElectronBridge<
    * @param name The name of the event
    * @param args The arguments to pass to the event
    */
-  emit<T extends keyof MainEvents & string>(event: If<MainEvents[T], void, T, never>): void
-  emit<T extends keyof MainEvents & string>(event: T, data: MainEvents[T]): void
-  emit(event: string, data?: unknown): void {
+  emit<T extends keyof MainEvents & string>(
+    ...args: EmitArgs<MainEvents, T>
+  ): void {
     for (const win of BrowserWindow.getAllWindows())
-      win.webContents.send(event, data)
+      win.webContents.send(args[0], args[1])
   }
 
   /**
@@ -74,7 +73,7 @@ export class ElectronBridge<
    */
   on<T extends keyof RendererEvents & string>(
     name: T,
-    fn: (e: IpcMainEvent, data: RendererEvents[T]) => void
+    fn: EventCallback<RendererEvents, T>
   ) {
     const listener = (e: IpcMainEvent, data: RendererEvents[T]) => {
       if (!this.validateSender(e.senderFrame)) return
@@ -91,7 +90,7 @@ export class ElectronBridge<
    */
   once<T extends keyof RendererEvents & string>(
     name: T,
-    fn: (e: IpcMainEvent, data: RendererEvents[T]) => void
+    fn: EventCallback<RendererEvents, T>
   ) {
     const listener = (e: IpcMainEvent, data: RendererEvents[T]) => {
       if (!this.validateSender(e.senderFrame)) return
@@ -129,7 +128,7 @@ export class ElectronBridge<
  * @returns The bridge instance
  */
 export const createBridge = <
-  Routers extends Record<string, Record<string, ApiFn>>,
+  Routers extends Record<string, Record<string, ApiFn>>
 >(
   routers: AssertNoReservedKeys<Routers>,
   opts?: ElectronBridge["opts"]

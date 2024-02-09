@@ -1,6 +1,4 @@
-import type { IpcMainInvokeEvent } from "electron"
-
-export type If<T, U, Then, Else> = T extends U ? Then : Else
+import type { IpcMainEvent, IpcMainInvokeEvent } from "electron"
 
 export type ApiFn = (e: IpcMainInvokeEvent, ...args: any[]) => any
 export type EventDef = Record<string, any>
@@ -17,3 +15,14 @@ export type StripFirstArg<T extends (...args: any[]) => any> = T extends (
 export type Prettify<T> = {
   [K in keyof T]: T[K]
 } & {}
+
+export type EmitArgs<
+  Def extends EventDef,
+  T extends keyof Def
+> = Def[T] extends void ? [event: T] : [event: T, data: Def[T]]
+
+export type EventCallback<
+  Def extends EventDef,
+  T extends keyof Def,
+  E = IpcMainEvent
+> = Def[T] extends void ? (e: E) => void : (e: E, data: Def[T]) => void
